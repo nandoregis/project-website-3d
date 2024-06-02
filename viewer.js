@@ -97,15 +97,9 @@ export default class Viewer
 		const size = box.getSize(new THREE.Vector3()).length();
 		const center = box.getCenter(new THREE.Vector3());
 
-		// object.position.x -= center.x;
-		// object.position.y -= center.y;
-		// object.position.z -= center.z;
-
-        console.log(center.z);
-
-        object.position.x += center.x * 25;
-        object.position.y -= center.y;
-        object.position.z -= center.z * 5;
+		object.position.x += center.x *25;
+		object.position.y -= center.y;
+		object.position.z -= center.z;
 
         this.camera.position.z = 2;
         this.camera.position.x = size / 6;
