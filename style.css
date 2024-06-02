@@ -1,5 +1,6 @@
 .main {
     width: calc(100% / 4);
     height: calc(100vh / 2);
-    border: 1xp solid red;
+    margin: 10px;
+    
 }

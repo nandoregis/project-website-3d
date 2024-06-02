@@ -8,7 +8,7 @@ export default class Viewer
         console.log(el.clientHeight);
 
         this.scene = new THREE.Scene();
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
         this.loader = new THREE.GLTFLoader();
         this.dracoLoader = new THREE.DRACOLoader();
@@ -17,61 +17,51 @@ export default class Viewer
         
         this.state = {
             bgColor: '#202020',
+            bgActive: true,
         }
 
-        const fov = 20;
+        // camera config
+        const fov = 12;
         const aspect = el.clientWidth / el.clientHeight;
-        this.camera = new THREE.PerspectiveCamera( fov, aspect, 0.1, 1000 );
+        this.camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 1000);
         this.scene.add(this.camera);
 
         // Luz ambiente
-        this.light = new THREE.AmbientLight(0xfffffff, 0.9);
+        this.light = new THREE.AmbientLight(0xfffffff, 1);
         this.scene.add(this.light);
         
+        // renderer tamanho
         this.renderer.setSize(el.clientWidth, el.clientHeight);
-        
         this.el.appendChild(this.renderer.domElement);
 
-        this.background();
-        
-        // this.draw();
-        
-        // this.animate = this.animate.bind(this);
-        // requestAnimationFrame(this.animate);
-        
-        this.run();
+
+        this.backgroundColor = new THREE.Color(this.state.bgColor);
+
+        this.background(null);
+        this.#run();
     }
 
-    async run() {
-        await this.load();
-        this.animate = this.animate.bind(this);
+    async #run() {
+        await this.#load();
+        this.animate = this.#animate.bind(this);
         requestAnimationFrame(this.animate);
     }
 
-    background() {
-        this.backgroundColor = new THREE.Color(this.state.bgColor);
-		this.scene.background = this.backgroundColor;
-    }
-    
+    background(active, color) {
+        this.state.bgActive = active;
+        this.bgColor = color;
 
-    createViewer() {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.appendChild(this.renderer.domElement);
-        return div;
+        if(active || this.state.bgActive) {
+            this.scene.background = this.backgroundColor;
+        }
+
     }
 
-    render() {
+    #render() {
         this.renderer.render(this.scene, this.camera);
     }
-    
-    draw() {
-        this.geometry = new THREE.BoxGeometry( 1, 1, 1 );
-        this.material = new THREE.MeshBasicMaterial( { color: 0x02f3c1 } );
-        this.cube = new THREE.Mesh( this.geometry, this.material );
-    }
 
-    loadModel(url) {
+    #loadModel(url) {
         return new Promise((resolve, reject) => {
             this.loader.load(url, (gltf) => {
 
@@ -86,7 +76,7 @@ export default class Viewer
                     );
                 }
 
-                this.setContent(scene, clips);
+                this.#setContent(scene, clips);
 
                 resolve(gltf);
             }, undefined, (error) => {
@@ -95,21 +85,27 @@ export default class Viewer
         });
     }
 
-    async load() {
-        this.model = await this.loadModel("models/sapato/MaterialsVariantsShoe.gltf");
+    async #load() {
+        this.model = await this.#loadModel("models/sapato/MaterialsVariantsShoe.gltf");
         this.model = this.model.scene;
     }
 
-    setContent(object, clips) {
+    #setContent(object, clips) {
         object.updateMatrixWorld(); // donmccurdy/three-gltf-viewer#330
 
 		const box = new THREE.Box3().setFromObject(object);
 		const size = box.getSize(new THREE.Vector3()).length();
 		const center = box.getCenter(new THREE.Vector3());
 
-		object.position.x -= center.x;
-		object.position.y -= center.y;
-		object.position.z -= center.z;
+		// object.position.x -= center.x;
+		// object.position.y -= center.y;
+		// object.position.z -= center.z;
+
+        console.log(center.z);
+
+        object.position.x += center.x * 25;
+        object.position.y -= center.y;
+        object.position.z -= center.z * 5;
 
         this.camera.position.z = 2;
         this.camera.position.x = size / 6;
@@ -122,13 +118,13 @@ export default class Viewer
     }
 
 
-    animate() {
+    #animate() {
         requestAnimationFrame( this.animate );
 
         this.model.rotation.y += 0.01;
 
         // toda animação e renderização.
-        this.render();
+        this.#render();
     }
 
 }
